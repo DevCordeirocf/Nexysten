@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model TenantStore {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
+  orders   Order[]
+
+  @@map("tenant_stores")
+}
+
+model Product {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  price     Decimal  @db.Decimal(10, 2)
+  stock     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant    TenantStore @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@map("products")
+}
+
+model Order {
+  id        String   @id @default(uuid())
+  tenantId  String   
+  orderDate DateTime @default(now())
+  total     Decimal  @db.Decimal(10, 2)
+  status    String
+
+  tenant    TenantStore @relation(fields: [tenantId], references: [id])
+  
+  @@index([tenantId])
+  @@map("orders")
+}
